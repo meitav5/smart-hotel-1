@@ -3,8 +3,13 @@ import json
 from flask import Flask, render_template, request, redirect, Response
 from helloworld.flaskrun import flaskrun
 import os
+from dotenv import load_dotenv
+from os.path import  join, dirname
 
 application = Flask(__name__)
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 @application.route('/', methods=['GET'])
 def get():
