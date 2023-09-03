@@ -224,7 +224,7 @@ def change_ac_settings():
 @jwt_required()
 @app.route('/api/users/add_devices/', methods=['POST'])
 def add_device():
-    from helloworld.aws get_all_data
+    from helloworld.aws import get_all_data
 
     current_user = get_jwt_identity()
     key = {"Username": current_user}
@@ -269,7 +269,7 @@ def add_device():
 @jwt_required()
 @app.route('/api/users/add_issues/', methods=['POST'])
 def add_issue():
-    from helloworld.aws get_all_data
+    from helloworld.aws import get_all_data
 
     current_user = get_jwt_identity()
     key = {"Username": current_user}
@@ -325,7 +325,7 @@ def logout():
 @app.route('/api/users/is_authenticated/', methods=['GET'])
 def is_authenticated():
     
-    from helloworld.aws get_all_data
+    from helloworld.aws import get_all_data
 
     current_user = get_jwt_identity()
     user = None
@@ -359,7 +359,7 @@ def is_authenticated():
 @app.route('/api/users/change_room_status/', methods=['PATCH'])
 def change_room_status():
     
-    from helloworld.aws get_all_data
+    from helloworld.aws import get_all_data
 
     post_data = json.loads(request.data)
 
@@ -458,7 +458,7 @@ def all_devices():
 @app.route('/api/users/change_device_status/', methods=['PATCH'])
 def change_device_status():
     
-    from helloworld.aws get_all_data
+    from helloworld.aws import get_all_data
 
     post_data = json.loads(request.data)
 
