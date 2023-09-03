@@ -28,6 +28,12 @@ import logging
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
+class Config:
+    LOCALE = os.environ.get("FLASK_LOCALE", 'en_US.utf8')
+    SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "\xbdx\xf4\xa8.\xce1\xda^:\xe5G\xdc\xb2_\xe8!\xf3\x1d\xa1\x97\x0e\xffa%\x80\x0e\xe9\xe6\x96:\xd7")
+    DEBUG = os.environ.get("FLASK_DEBUG", 'False')
+    BASE_URL = os.environ.get("FLASK_BASE_URL", "")
+    
 app = Flask(__name__)
 
 logging.basicConfig(filename='FLASK_BACKEND.log', level=logging.DEBUG, format=f'%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
