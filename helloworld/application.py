@@ -20,6 +20,7 @@ from flask_jwt_extended import (
 )
 import json
 import random
+import boto3
 
 from helloworld.flaskrun import flaskrun
 import logging
