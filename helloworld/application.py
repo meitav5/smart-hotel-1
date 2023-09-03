@@ -13,8 +13,7 @@ load_dotenv(dotenv_path)
 
 @application.route('/', methods=['GET'])
 def get():
-    url = os.environ.get('AWS_STATIC_WEBSITE_S3_URL')
-    return redirect(url)
+    return redirect("http://smart-hotel-static.s3-website-us-east-1.amazonaws.com")
 
 @application.route('/', methods=['POST'])
 def post():
