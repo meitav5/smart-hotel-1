@@ -36,9 +36,14 @@ class Config:
     
 app = Flask(__name__)
 
+app.config.from_object(Config())
+
 logging.basicConfig(filename='FLASK_BACKEND.log', level=logging.DEBUG, format=f'%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 
 jwt = JWTManager(app)
+
+app.config.from_object(Config())
+
 
 cors = CORS(app, allow_headers=[
     "Content-Type", "Authorization", "Access-Control-Allow-Credentials", "withCredentials", "Access-Control-Allow-Origin"],
