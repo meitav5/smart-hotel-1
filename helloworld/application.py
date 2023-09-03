@@ -74,9 +74,7 @@ def parse_user(user_obj):
 
 @app.route('/', methods=['GET'])
 def index():
-    app.logger.info(['Info level log', os.environ, os.environ.get('AWS_STATIC_WEBSITE_S3_URL')])
-    url = os.environ.get('AWS_STATIC_WEBSITE_S3_URL')
-    return redirect(url)
+    return redirect("http://smart-hotel-static.s3-website-us-east-1.amazonaws.com")
 
 @app.route('/api/login/', methods=['POST'])
 def login():

@@ -7,9 +7,9 @@ import json
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_REGION_NAME = os.environ.get("AWS_REGION_NAME")
+AWS_SECRET_ACCESS_KEY = "AKIA2HA3C4EPQI2TDR5B"
+AWS_ACCESS_KEY_ID = "525cvr4FPKr/3l7jYxmRAcM0XFP56EeKczChE33D"
+AWS_REGION_NAME = "us-east-1"
 
 dynamodb = boto3.client(
         "dynamodb",
