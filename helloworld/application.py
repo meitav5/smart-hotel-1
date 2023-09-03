@@ -22,11 +22,14 @@ import json
 import random
 
 from helloworld.flaskrun import flaskrun
+import logging
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
 app = Flask(__name__)
+
+logging.basicConfig(filename='FLASK_BACKEND.log', level=logging.DEBUG, format=f'%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 
 jwt = JWTManager(app)
 
@@ -71,6 +74,7 @@ def parse_user(user_obj):
 
 @app.route('/', methods=['GET'])
 def index():
+    app.logger.info(['Info level log', os.environ, os.environ.get('AWS_STATIC_WEBSITE_S3_URL')])
     url = os.environ.get('AWS_STATIC_WEBSITE_S3_URL')
     return redirect(url)
 
