@@ -37,6 +37,24 @@ cors = CORS(app, allow_headers=[
     "Content-Type", "Authorization", "Access-Control-Allow-Credentials", "withCredentials", "Access-Control-Allow-Origin"],
             supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
+AWS_SECRET_ACCESS_KEY = "AKIA2HA3C4EPQI2TDR5B"
+AWS_ACCESS_KEY_ID = "525cvr4FPKr/3l7jYxmRAcM0XFP56EeKczChE33D"
+AWS_REGION_NAME = "us-east-1"
+
+dynamodb = boto3.client(
+        "dynamodb",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME
+    )
+
+s3 = boto3.resource(
+        "s3",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION_NAME
+    )
+    
 def parse_user(user_obj):
     
     temp = {}
@@ -78,7 +96,7 @@ def index():
 
 @app.route('/api/login/', methods=['POST'])
 def login():
-    from helloworld.aws import dynamodb, get_all_data, get_data_from_dynamo_db
+    from helloworld.aws import get_all_data, get_data_from_dynamo_db
 
     post_data = json.loads(request.data)
     username = post_data["userName"]
@@ -143,7 +161,6 @@ def login():
 @jwt_required()
 @app.route('/api/users/change_ac_settings/', methods=['PATCH'])
 def change_ac_settings():
-    from helloworld.aws import dynamodb
 
     current_user = get_jwt_identity()
     key = {"Username": current_user}
@@ -207,7 +224,7 @@ def change_ac_settings():
 @jwt_required()
 @app.route('/api/users/add_devices/', methods=['POST'])
 def add_device():
-    from helloworld.aws import dynamodb, get_all_data
+    from helloworld.aws get_all_data
 
     current_user = get_jwt_identity()
     key = {"Username": current_user}
@@ -252,7 +269,7 @@ def add_device():
 @jwt_required()
 @app.route('/api/users/add_issues/', methods=['POST'])
 def add_issue():
-    from helloworld.aws import dynamodb, get_all_data
+    from helloworld.aws get_all_data
 
     current_user = get_jwt_identity()
     key = {"Username": current_user}
@@ -308,7 +325,7 @@ def logout():
 @app.route('/api/users/is_authenticated/', methods=['GET'])
 def is_authenticated():
     
-    from helloworld.aws import dynamodb, get_all_data
+    from helloworld.aws get_all_data
 
     current_user = get_jwt_identity()
     user = None
@@ -342,7 +359,7 @@ def is_authenticated():
 @app.route('/api/users/change_room_status/', methods=['PATCH'])
 def change_room_status():
     
-    from helloworld.aws import dynamodb, get_all_data
+    from helloworld.aws get_all_data
 
     post_data = json.loads(request.data)
 
@@ -425,7 +442,6 @@ def change_room_status():
 @jwt_required()
 @app.route('/api/users/all_devices/', methods=['GET'])
 def all_devices():
-    from helloworld.aws import dynamodb
 
     current_user = get_jwt_identity()
 
@@ -442,7 +458,7 @@ def all_devices():
 @app.route('/api/users/change_device_status/', methods=['PATCH'])
 def change_device_status():
     
-    from helloworld.aws import dynamodb, get_all_data
+    from helloworld.aws get_all_data
 
     post_data = json.loads(request.data)
 
