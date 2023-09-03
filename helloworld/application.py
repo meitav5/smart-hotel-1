@@ -153,7 +153,7 @@ def login():
     else:
         try:
             dynamodb.put_item(TableName="Users", Item=put_user_item)
-            fetch_item = {'S': put_user_item["Username"] }
+            fetch_item = put_user_item["Username"]
             fetch_response = get_data_from_dynamo_db(fetch_item)
             if fetch_response["success"]:
                 user = fetch_response["user"]
