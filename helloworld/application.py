@@ -153,7 +153,22 @@ def login():
     else:
         try:
             dynamodb.put_item(TableName="Users", Item=put_user_item)
-            return flask.jsonify(ok=True, success=True)
+            fetch_item = {'S': put_user_item["Username"] }
+            fetch_response = get_data_from_dynamo_db(fetch_item)
+            if fetch_response["success"]:
+                user = fetch_response["user"]
+                access_token = create_access_token(identity=user["Username"], fresh=True)
+                refresh_token = create_refresh_token(user["Username"])
+                user = parse_user(user)
+                u_list = []
+                if role == "staff":
+                    all_data = get_all_data()
+                    all_users = all_data["users"]
+                    for user_obj in all_users:
+                        temp = parse_user(user_obj)
+                        u_list.append(temp)
+                
+                return flask.jsonify(ok=True, user=user, access=access_token, refresh=refresh_token, all_data=u_list)
     
         except Exception as e:
             print("Some error occured while setting data in dynamodb: ", e)
