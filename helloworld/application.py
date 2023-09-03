@@ -158,7 +158,7 @@ def login():
         except Exception as e:
             print("Some error occured while setting data in dynamodb: ", e)
             # "Some error occured."
-            return flask.jsonify(ok=False, error=json.dumps(e))
+            return flask.jsonify(ok=False, error=str(e))
 
 @jwt_required()
 @app.route('/api/users/change_ac_settings/', methods=['PATCH'])
