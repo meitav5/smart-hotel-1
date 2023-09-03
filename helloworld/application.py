@@ -38,8 +38,8 @@ cors = CORS(app, allow_headers=[
     "Content-Type", "Authorization", "Access-Control-Allow-Credentials", "withCredentials", "Access-Control-Allow-Origin"],
             supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
-AWS_SECRET_ACCESS_KEY = "AKIA2HA3C4EPQI2TDR5B"
-AWS_ACCESS_KEY_ID = "525cvr4FPKr/3l7jYxmRAcM0XFP56EeKczChE33D"
+AWS_ACCESS_KEY_ID = "AKIA2HA3C4EPQI2TDR5B"
+AWS_SECRET_ACCESS_KEY = "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"
 AWS_REGION_NAME = "us-east-1"
 
 dynamodb = boto3.client(
