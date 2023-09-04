@@ -186,6 +186,52 @@ def login():
             # "Some error occured."
             return flask.jsonify(ok=False, error=str(e))
 
+
+@jwt_required()
+@app.route('/api/users/change_room_issues_status/', methods=['PATCH'])
+def change_room_issues_status():
+    from helloworld.aws import get_all_data
+
+    issues_fixed = request.args.get('issues_fixed')
+
+    current_user = get_jwt_identity()
+    
+    key = {"Username": current_user}
+
+    issue_list = {"L": []}
+    
+    if issues_fixed:
+
+        try:
+            dynamodb.update_item(
+                TableName="Users",
+                Key=key,
+                UpdateExpression="SET Issues=:issues",
+                ExpressionAttributeValues={
+                    ":issues": issue_list,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+
+            user = dynamodb.get_item(TableName="Users", Key=key)
+            user_data = user["Item"]
+            user = parse_user(user_data)
+            del user_data["Password"]
+
+            u_list = []
+            if user["role"] == "staff":
+                all_data = get_all_data()
+                all_users = all_data["users"]
+                for user_obj in all_users:
+                    temp = parse_user(user_obj)
+                    u_list.append(temp)
+
+            return flask.jsonify(ok=True, user=user, all_data=u_list)
+        
+        except Exception as e:
+            print("Some error occured while updating data from dynamodb: ", e)
+            return flask.jsonify(ok=False, is_logged_in=False, error=e)
+            
 @jwt_required()
 @app.route('/api/users/change_ac_settings/', methods=['PATCH'])
 def change_ac_settings():
