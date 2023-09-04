@@ -147,6 +147,8 @@ def login():
         access_token = create_access_token(identity=user["Username"], fresh=True)
         refresh_token = create_refresh_token(user["Username"])
         user = parse_user(user)
+        if not user["occupied"]:
+            return flask.jsonify(ok=False, error="This Room is not available anymore.")
         u_list = []
         if role == "staff":
             all_data = get_all_data()
@@ -186,52 +188,6 @@ def login():
             # "Some error occured."
             return flask.jsonify(ok=False, error=str(e))
 
-
-@jwt_required()
-@app.route('/api/users/change_room_issues_status/', methods=['PATCH'])
-def change_room_issues_status():
-    from helloworld.aws import get_all_data
-
-    issues_fixed = request.args.get('issues_fixed')
-
-    current_user = get_jwt_identity()
-    
-    key = {"Username": current_user}
-
-    issue_list = {"L": []}
-    
-    if issues_fixed:
-
-        try:
-            dynamodb.update_item(
-                TableName="Users",
-                Key=key,
-                UpdateExpression="SET Issues=:issues",
-                ExpressionAttributeValues={
-                    ":issues": issue_list,
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-
-            user = dynamodb.get_item(TableName="Users", Key=key)
-            user_data = user["Item"]
-            user = parse_user(user_data)
-            del user_data["Password"]
-
-            u_list = []
-            if user["role"] == "staff":
-                all_data = get_all_data()
-                all_users = all_data["users"]
-                for user_obj in all_users:
-                    temp = parse_user(user_obj)
-                    u_list.append(temp)
-
-            return flask.jsonify(ok=True, user=user, all_data=u_list)
-        
-        except Exception as e:
-            print("Some error occured while updating data from dynamodb: ", e)
-            return flask.jsonify(ok=False, is_logged_in=False, error=e)
-            
 @jwt_required()
 @app.route('/api/users/change_ac_settings/', methods=['PATCH'])
 def change_ac_settings():
@@ -430,90 +386,6 @@ def is_authenticated():
         return flask.jsonify(ok=False, is_logged_in=False)
 
 @jwt_required()
-@app.route('/api/users/change_room_status/', methods=['PATCH'])
-def change_room_status():
-    
-    from helloworld.aws import get_all_data
-
-    post_data = json.loads(request.data)
-
-    occupancy = request.args.get('occupancy')
-    locked = request.args.get('locked')
-
-    update_expression = ''
-    if occupancy:
-        update_expression = 'set Occupied = :status'
-    elif locked:
-        update_expression = 'set Locked = :status'
-
-    status = post_data["status"]
-
-    current_user = get_jwt_identity()
-    
-    key = {"Username": current_user}
-
-    user = dynamodb.get_item(TableName="Users", Key=key)
-    user_data = user["Item"]
-    user_obj = parse_user(user_data)
-    del user_data["Password"]
-    
-    devices = user_obj["devices"]
-    status_obj = False
-    if locked:
-        if status == False:
-            status_obj = True
-
-        if len(devices) > 0:
-            d_obj = {"L": []}
-            for device in devices:
-                d_obj["L"].append({
-                    "M": {
-                    "wattage": {"S": device["wattage"] },
-                    "device_name": {"S": device["device_name"] },
-                    "status": {"BOOL": status_obj },
-                    "id": {"S": device["id"] },
-                    }
-                })
-            dynamodb.update_item(
-                TableName="Users",
-                Key=key,
-                UpdateExpression="SET Devices=:devices",
-                ExpressionAttributeValues={
-                    ":devices": d_obj,
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-    try:
-        dynamodb.update_item(
-            TableName="Users",
-            Key=key,
-            UpdateExpression=update_expression,
-            ExpressionAttributeValues={
-                ':status': {"BOOL": status},
-            },
-            ReturnValues="UPDATED_NEW"
-        )
-        
-        user = dynamodb.get_item(TableName="Users", Key=key)
-        user_data = user["Item"]
-        user = parse_user(user_data)
-        del user_data["Password"]
-
-        u_list = []
-        if user["role"] == "staff":
-            all_data = get_all_data()
-            all_users = all_data["users"]
-            for user_obj in all_users:
-                temp = parse_user(user_obj)
-                u_list.append(temp)
-
-        return flask.jsonify(ok=True, user=user, all_data=u_list)
-
-    except Exception as e:
-        print("Some error occured while updating data from dynamodb: ", e)
-        return flask.jsonify(ok=False, is_logged_in=False, error=e)
-    
-@jwt_required()
 @app.route('/api/users/all_devices/', methods=['GET'])
 def all_devices():
 
@@ -572,7 +444,165 @@ def change_device_status():
     except Exception as e:
         print("Some error occured while updating data from dynamodb: ", e)
         return flask.jsonify(ok=False, is_logged_in=False, error=json.dumps(e))
+
+@jwt_required()
+@app.route('/api/users/change_room_issues_status/', methods=['PATCH'])
+def change_room_issues_status():
+    from helloworld.aws import get_all_data
+
+    issues_fixed = request.args.get('issues_fixed')
+
+    post_data = json.loads(request.data)
     
+    room_number = post_data["id"]
+
+    current_user = get_jwt_identity()
+    
+    all_data = get_all_data()
+    all_users = all_data["users"]
+
+    required_username = ""
+    for user_obj in all_users:
+        temp = parse_user(user_obj)
+        if temp["room_number"] == room_number:
+            required_username = temp["username"]
+            break
+    
+    key = {'Username': current_user }
+    put_key = {'Username': {'S': required_username }}
+
+    issue_list = {"L": []}
+    
+    if issues_fixed:
+
+        try:
+            dynamodb.update_item(
+                TableName="Users",
+                Key=put_key,
+                UpdateExpression="SET Issues=:issues",
+                ExpressionAttributeValues={
+                    ":issues": issue_list,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+
+            user = dynamodb.get_item(TableName="Users", Key=key)
+            user_data = user["Item"]
+            user = parse_user(user_data)
+            del user_data["Password"]
+
+            u_list = []
+            if user["role"] == "staff":
+                all_data = get_all_data()
+                all_users = all_data["users"]
+                for user_obj in all_users:
+                    temp = parse_user(user_obj)
+                    u_list.append(temp)
+
+            return flask.jsonify(ok=True, user=user, all_data=u_list)
+        
+        except Exception as e:
+            print("Some error occured while updating data from dynamodb: ", e)
+            return flask.jsonify(ok=False, is_logged_in=False, error=e)
+    
+@jwt_required()
+@app.route('/api/users/change_room_status/', methods=['PATCH'])
+def change_room_status():
+    
+    from helloworld.aws import get_all_data
+
+    post_data = json.loads(request.data)
+
+    room_number = post_data["id"]
+
+    occupancy = request.args.get('occupancy')
+    locked = request.args.get('locked')
+    
+    update_expression = ''
+    if occupancy:
+        update_expression = 'set Occupied = :status'
+    elif locked:
+        update_expression = 'set Locked = :status'
+
+    status = post_data["status"]
+
+    current_user = get_jwt_identity()
+    
+    all_data = get_all_data()
+    all_users = all_data["users"]
+
+    required_username = ""
+    for user_obj in all_users:
+        temp = parse_user(user_obj)
+        if temp["room_number"] == room_number:
+            required_username = temp["username"]
+            break
+    
+    key = {'Username': current_user }
+    put_key = {'Username': {'S': required_username }}
+
+    user = dynamodb.get_item(TableName="Users", Key=key)
+    user_data = user["Item"]
+    user_obj = parse_user(user_data)
+    del user_data["Password"]
+    
+    devices = user_obj["devices"]
+    status_obj = False
+        
+    if locked:
+        if status == False:
+            status_obj = True
+
+        if len(devices) > 0:
+            d_obj = {"L": []}
+            for device in devices:
+                d_obj["L"].append({
+                    "M": {
+                    "wattage": {"S": device["wattage"] },
+                    "device_name": {"S": device["device_name"] },
+                    "status": {"BOOL": status_obj },
+                    "id": {"S": device["id"] },
+                    }
+                })
+            dynamodb.update_item(
+                TableName="Users",
+                Key=put_key,
+                UpdateExpression="SET Devices=:devices",
+                ExpressionAttributeValues={
+                    ":devices": d_obj,
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+    try:
+        dynamodb.update_item(
+            TableName="Users",
+            Key=put_key,
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues={
+                ':status': {"BOOL": status},
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        
+        user = dynamodb.get_item(TableName="Users", Key=key)
+        user_data = user["Item"]
+        user = parse_user(user_data)
+        del user_data["Password"]
+
+        u_list = []
+        if user["role"] == "staff":
+            all_data = get_all_data()
+            all_users = all_data["users"]
+            for user_obj in all_users:
+                temp = parse_user(user_obj)
+                u_list.append(temp)
+
+        return flask.jsonify(ok=True, user=user, all_data=u_list)
+
+    except Exception as e:
+        print("Some error occured while updating data from dynamodb: ", e)
+        return flask.jsonify(ok=False, is_logged_in=False, error=e)
+        
 @app.before_request
 def before_request():
     if request.endpoint != 'login' and request.endpoint != 'index':
